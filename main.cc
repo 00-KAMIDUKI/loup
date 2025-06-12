@@ -139,14 +139,24 @@ int main() {
   client.window = client.globals.create_window();
   client.window.commit_surface();
 
-  zwlr_layer_surface_v1_add_listener(client.window.layer_surface, address_of(zwlr_layer_surface_v1_listener {
-    .configure = [](void* data, zwlr_layer_surface_v1* layer_surface, uint32_t serial, uint32_t width, uint32_t height) {
-      auto& window = *static_cast<struct window*>(data);
-      window.on_layer_surface_configure(width, height);
-      zwlr_layer_surface_v1_ack_configure(layer_surface, serial);
-    },
-    .closed = nop,
-  }), &client.window);
+  zwlr_layer_surface_v1_add_listener(
+    client.window.layer_surface,
+    address_of(zwlr_layer_surface_v1_listener {
+      .configure = [](
+        void* data,
+        zwlr_layer_surface_v1* layer_surface,
+        uint32_t serial,
+        uint32_t width,
+        uint32_t height
+      ) {
+        auto& window = *static_cast<struct window*>(data);
+        window.on_layer_surface_configure(width, height);
+        zwlr_layer_surface_v1_ack_configure(layer_surface, serial);
+      },
+      .closed = nop,
+    }),
+    &client.window
+  );
   wl_display_roundtrip(client.display);
 
   char path_buf[32];
@@ -167,8 +177,13 @@ int main() {
     0
   )));
   auto view = std::span{memory, buf_size};
+  std::ignore = view;
 
-  const auto pool = check_null(wl_shm_create_pool(client.globals.shm, fd, client.window.buffer_size()));
+  const auto pool = check_null(wl_shm_create_pool(
+    client.globals.shm,
+    fd,
+    client.window.buffer_size()
+  ));
   const auto buffer = check_null(wl_shm_pool_create_buffer(
     pool,
     0,
