@@ -1,5 +1,5 @@
 # Loup
-A extremely tiny wayland wallpaper daemon that displays wallpaper content from an existing shared memory file.
+An extremely tiny wayland wallpaper daemon that displays wallpaper content from an existing shared memory file.
 
 ## Build from Source
 
@@ -24,7 +24,7 @@ Use other tools like `ffmpeg` to convert your image to raw BGRA format, then sta
 ffmpeg -i $img -vf scale=1920:1080 -pix_fmt bgra -f rawvideo /run/user/$(id -u)/loup
 build/loup
 ```
-where `$img` stands for a image file path.
+where `$img` stands for an image file path.
 
 ## TODO
 - Inter-process synchronization (automatically toggle wallpapers).
