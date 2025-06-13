@@ -21,9 +21,10 @@ User is responsible for sizing it correctly.
 
 Use other tools like `ffmpeg` to convert your image to raw BGRA format, then start the daemon:
 ```sh
-ffmpeg -i $1 -vf scale=1920:1080 -pix_fmt bgra -f rawvideo /run/user/$(id -u)/loup
+ffmpeg -i $img -vf scale=1920:1080 -pix_fmt bgra -f rawvideo /run/user/$(id -u)/loup
 build/loup
 ```
+where `$img` stands for a image file path.
 
 ## TODO
 - Inter-process synchronization (automatically toggle wallpapers).
