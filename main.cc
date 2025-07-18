@@ -1,7 +1,9 @@
 #include <cstdio>
+#include <cstdint>
 #include <cstring>
 #include <fcntl.h>
 #include <span>
+#include <string_view>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <wayland-client.h>
@@ -32,19 +34,19 @@ struct window {
   wl_surface *surface;
   zwlr_layer_surface_v1 *layer_surface;
 
-  uint32_t width;
-  uint32_t height;
+  std::uint32_t width;
+  std::uint32_t height;
 
-  void on_layer_surface_configure(uint32_t width, uint32_t height) noexcept {
+  void on_layer_surface_configure(std::uint32_t width, std::uint32_t height) noexcept {
     this->width = width;
     this->height = height;
   }
 
   auto buffer_size() const noexcept {
-    return this->width * this->height * 4;
+    return this->stride() * this->height;
   }
 
-  auto stride() const noexcept {
+  auto stride() const noexcept -> std::uint32_t {
     return this->width * 4;
   }
 
@@ -160,7 +162,18 @@ int main() {
   wl_display_roundtrip(client.display);
 
   char path_buf[32];
-  sprintf(path_buf, "/run/user/%d/" app_name, getuid());
+  constexpr decltype(auto) key = "XDG_RUNTIME_DIR";
+  for (auto it = environ; *it; ++it) {
+    const auto entry = std::string_view{*it};
+    if (entry.starts_with(key)) {
+      const auto value = entry.substr(std::size(key));
+      std::sprintf(path_buf, "%s/" app_name, value.data());
+      goto path_buf_done;
+    }
+  }
+  std::sprintf(path_buf, "/run/user/%d/" app_name, getuid());
+path_buf_done:
+
   const auto fd = open(path_buf, O_RDWR, S_IXOTH);
   if (fd == -1) {
     std::perror("open");
@@ -182,7 +195,7 @@ int main() {
   const auto pool = check_null(wl_shm_create_pool(
     client.globals.shm,
     fd,
-    client.window.buffer_size()
+   buf_size
   ));
   const auto buffer = check_null(wl_shm_pool_create_buffer(
     pool,
